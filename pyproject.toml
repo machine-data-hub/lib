@@ -2,7 +2,7 @@
 name = "phm-data-hub"
 version = "0.1.0"
 description = "Python-based Command Line Tool to use the PHM Data Hub"
-authors = ["Your Name <you@example.com>"]
+authors = ["ceciliabarnes <cbarnes7@uw.edu>"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
