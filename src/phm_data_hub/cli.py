@@ -1,21 +1,22 @@
 import typer
 import pandas as pd
 import requests
+import csv
 
 app = typer.Typer()
 
-datasets = pd.read_csv('datasets.csv')
-suggestions = []
+datasets = pd.read_csv('/Users/ceciliabarnes/Documents/Capstone/lib/src/data/datasets.csv')
+#print(datasets.head())
 
 @app.command("suggest")
 def suggest(link: str):
-    suggestions.append(link)
+    with open('/Users/ceciliabarnes/Documents/Capstone/lib/src/data/suggestions.csv', mode='a') as suggestions_file:
+        employee_writer = csv.writer(suggestions_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        employee_writer.writerow([link])
     typer.echo(f"Thank you! You have suggested a dataset from the following link: {link}")
-    typer.echo(suggestions)
-    return suggestions
 
 @app.command("download")
-def dataset(name: str):
+def download(name: str):
     """Download a dataset by passing in the name. """
     if name in datasets.values:
         typer.echo(f"Downloading {name} right now!")
@@ -44,7 +45,7 @@ def metadata(name: str):
         typer.echo("That dataset doesn't exist or you've made a type in the name.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
 
-@app.command("see_all_datasets")
+@app.command("see-all-datasets")
 def list():
     all = ""
     for name in datasets["Name"]:
