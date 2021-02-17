@@ -36,3 +36,4 @@ source = ["phm_data_hub"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 100
