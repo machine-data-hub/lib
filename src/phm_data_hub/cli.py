@@ -7,9 +7,16 @@ app = typer.Typer()
 API_URL = 'https://deploy-preview-24--quirky-meninsky-24e642.netlify.app/datasets.json'
 
 def get_datasets(url):
-    response = requests.get(url)
-    datasets = response.json()
-    return datasets
+    try:
+        with requests.get(url) as response:
+            response.raise_for_status()
+            return response.json()
+    except requests.RequestException as error:
+        message = str(error)
+        raise click.ClickException(message)
+    #response = requests.get(url)
+    #datasets = response.json()
+    #return datasets
 
 def dataset_names(datasets):
     names = [row['Name'] for row in datasets]
@@ -28,7 +35,7 @@ def download(name: str):
     datasets = get_datasets(API_URL)
     if name in dataset_names(datasets):
         typer.echo(f"Downloading {name} right now!")
-        url =  [row["URL"] for row in datasets if row["Name"] == name][0]
+        url = [row["URL"] for row in datasets if row["Name"] == name][0]
         r = requests.get(url, allow_redirects=True)
         # save content with name
         dest = '/Users/ceciliabarnes/Downloads/' + name
