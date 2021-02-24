@@ -35,7 +35,7 @@ def suggest(link: str = typer.Option(..., prompt="Please enter the link to the d
         )
         employee_writer.writerow([name, summary, link])
     typer.echo(
-        f"Thank you! You have suggested a dataset from the following link: {link}"
+        f"Thank you! You have suggested a dataset, {name}, from the following link: {link}"
     )
 
 
