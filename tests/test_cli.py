@@ -2,16 +2,15 @@ from typer.testing import CliRunner
 import pytest
 from pytest_mock import MockFixture
 from unittest import mock
+import requests
 
 
 # TUTORIAL FROM TYPER
-from src.phm_data_hub.cli import app
+from phm_data_hub.cli import app
+import phm_data_hub
 
-@pytest.fixture
-def mock_requests_get(mocker):
-    """Fixture for mocking requests.get."""
-    mock = mocker.patch("requests.get")
-    mock.return_value.__enter__.return_value.json.return_value = [{
+MOCK_DATASETS = [
+    {
         "id": 1,
         "Name": "Combined Cycle Power Plant Data Set",
         "Owner": "UC Irvine",
@@ -28,32 +27,64 @@ def mock_requests_get(mocker):
         "Likes": 0,
         "File Size": "3.7 MB",
         "Web Page (for reference, not metadata)": "https://archive.ics.uci.edu/ml/datasets/Combined+Cycle+Power+Plant#",
-        }]
+    }
+]
+
+
+@pytest.fixture
+def mock_requests_get(mocker):
+    """Fixture for mocking requests.get."""
+    mock = mocker.patch("requests.get")
+    mock.return_value.__enter__.return_value.json.return_value = MOCK_DATASETS
     return mock
+
+
+@pytest.fixture
+def mock_requests_file_get(mocker):
+    """Fixture for mocking requests.get."""
+    mock = mocker.patch("requests.get")
+    mock.return_value.content = b"Example File Content"
+    return mock
+
+
+@pytest.fixture
+def mock_get_datasets(mocker):
+    """Fixture for mocking get_datasets."""
+    mock = mocker.patch("phm_data_hub.cli.get_datasets")
+    mock.return_value = MOCK_DATASETS
+    return mock
+
 
 @pytest.fixture
 def runner():
     return CliRunner()
 
-#The first parameter to runner.invoke() is a Typer app.
-#The second parameter is a list of str, with all the text you would pass in the command line, right as you would pass it:
-def test_success_download(runner, mock_requests_get):
+
+# The first parameter to runner.invoke() is a Typer app.
+# The second parameter is a list of str, with all the text you would pass in the command line, right as you would pass it:
+def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
+    print(f"Try the get_datasets() mock: {phm_data_hub.cli.get_datasets('hello')}")
+    print(f"Try the request.get mock: {requests.get('hello').json()}")
     result = runner.invoke(app, ["download", "Combined Cycle Power Plant Data Set"])
     assert result.exit_code == 0
+
 
 def test_fail_download(runner, mock_requests_get):
     # passing in incorrect name
     result = runner.invoke(app, ["download", "Combined Cycle Power Plant Data"])
     assert result.exit_code == 0
 
+
 def test_metadata(runner, mock_requests_get):
     result = runner.invoke(app, ["metadata", "Combined Cycle Power Plant Data Set"])
     assert result.exit_code == 0
-    #assert f"Downloading {name} right now!" in result.stdout
+    # assert f"Downloading {name} right now!" in result.stdout
+
 
 def test_suggest(runner):
     result = runner.invoke(app, ["suggest", "www.google.com"])
     assert result.exit_code == 0
+
 
 def test_list(runner):
     result = runner.invoke(app, ["see-all-datasets"])
