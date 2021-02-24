@@ -6,8 +6,8 @@ import requests
 
 
 # TUTORIAL FROM TYPER
-from phm_data_hub.cli import app
 import phm_data_hub
+from phm_data_hub.cli import app
 
 MOCK_DATASETS = [
     {
@@ -82,7 +82,10 @@ def test_metadata(runner, mock_requests_get):
 
 
 def test_suggest(runner):
-    result = runner.invoke(app, ["suggest", "www.google.com"])
+    result = runner.invoke(app, ["suggest",
+                                 "--link", "www.google.com",
+                                 "--name", "Test",
+                                 "--summary", "Testing summary"])
     assert result.exit_code == 0
 
 

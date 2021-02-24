@@ -25,13 +25,15 @@ def dataset_names(datasets):
 
 
 @app.command("suggest")
-def suggest(link: str):
+def suggest(link: str = typer.Option(..., prompt="Please enter the link to the dataset you want to suggest"),
+            name: str = typer.Option(..., prompt="Please enter a name for the dataset at the link you provided"),
+            summary: str = typer.Option(..., prompt="Please enter a short summary describing the dataset"),):
     typer.echo(f"{SUGGESTION_FILE}")
     with open(SUGGESTION_FILE, mode="a") as suggestions_file:
         employee_writer = csv.writer(
             suggestions_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
         )
-        employee_writer.writerow([link])
+        employee_writer.writerow([name, summary, link])
     typer.echo(
         f"Thank you! You have suggested a dataset from the following link: {link}"
     )
