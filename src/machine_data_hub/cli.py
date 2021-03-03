@@ -1,5 +1,4 @@
 import typer
-import pandas as pd
 import requests
 import csv
 import pathlib
@@ -28,6 +27,7 @@ def dataset_names(datasets):
 def suggest(link: str = typer.Option(..., prompt="Please enter the link to the dataset you want to suggest"),
             name: str = typer.Option(..., prompt="Please enter a name for the dataset at the link you provided"),
             summary: str = typer.Option(..., prompt="Please enter a short summary describing the dataset"),):
+    """Suggest a dataset to be added to the Machine Data Hub by giving a link, name, and summary. """
     typer.echo(f"{SUGGESTION_FILE}")
     with open(SUGGESTION_FILE, mode="a") as suggestions_file:
         employee_writer = csv.writer(
@@ -57,6 +57,7 @@ def download(name: str):
 
 @app.command("metadata")
 def metadata(name: str):
+    """View the metadata for a dataset by passing in the name. """
     datasets = get_datasets(API_URL)
     if name in dataset_names(datasets):
         for row in datasets:
@@ -69,8 +70,9 @@ def metadata(name: str):
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
 
 
-@app.command("see-all-datasets")
+@app.command("list")
 def list():
+    """View list of all datasets available. """
     all = ""
     datasets = get_datasets(API_URL)
     for name in dataset_names(datasets):

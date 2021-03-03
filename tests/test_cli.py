@@ -6,8 +6,8 @@ import requests
 
 
 # TUTORIAL FROM TYPER
-import phm_data_hub
-from phm_data_hub.cli import app
+import machine_data_hub
+from machine_data_hub.cli import app
 
 MOCK_DATASETS = [
     {
@@ -50,7 +50,7 @@ def mock_requests_file_get(mocker):
 @pytest.fixture
 def mock_get_datasets(mocker):
     """Fixture for mocking get_datasets."""
-    mock = mocker.patch("phm_data_hub.cli.get_datasets")
+    mock = mocker.patch("machine_data_hub.cli.get_datasets")
     mock.return_value = MOCK_DATASETS
     return mock
 
@@ -63,7 +63,7 @@ def runner():
 # The first parameter to runner.invoke() is a Typer app.
 # The second parameter is a list of str, with all the text you would pass in the command line, right as you would pass it:
 def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
-    print(f"Try the get_datasets() mock: {phm_data_hub.cli.get_datasets('hello')}")
+    print(f"Try the get_datasets() mock: {machine_data_hub.cli.get_datasets('hello')}")
     print(f"Try the request.get mock: {requests.get('hello').json()}")
     result = runner.invoke(app, ["download", "Combined Cycle Power Plant Data Set"])
     assert result.exit_code == 0
@@ -90,5 +90,5 @@ def test_suggest(runner):
 
 
 def test_list(runner):
-    result = runner.invoke(app, ["see-all-datasets"])
+    result = runner.invoke(app, ["list"])
     assert result.exit_code == 0

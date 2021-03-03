@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "phm-data-hub"
+name = "machine-data-hub"
 version = "0.1.0"
-description = "Python-based Command Line Tool to use the PHM Data Hub"
+description = "Python-based Command Line Tool to use the Machine Data Hub"
 authors = ["ceciliabarnes <cbarnes7@uw.edu>"]
 license = "MIT License"
 
@@ -24,14 +24,14 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-phm = "phm_data_hub.cli:main"
+mdh = "machine_data_hub.cli:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
 
 [tool.coverage.run]
 branch = true
-source = ["phm_data_hub"]
+source = ["machine_data_hub"]
 
 [tool.coverage.report]
 show_missing = true
