@@ -45,7 +45,7 @@ def download(name: str):
     datasets = get_datasets(API_URL)
     if name in dataset_names(datasets):
         typer.echo(f"Downloading {name} right now!")
-        url = [row["URL"] for row in datasets if row["Name"] == name][0]
+        url = [row["DownloadLink"] for row in datasets if row["Name"] == name][0]
         r = requests.get(url, allow_redirects=True)
         # save content with name
         with open(f"{name}", "wb") as fid:
