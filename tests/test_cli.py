@@ -12,6 +12,7 @@ from machine_data_hub.cli import app
 MOCK_DATASETS = [
     {
         "id": 1,
+        "Rank": 1,
         "Name": "Combined Cycle Power Plant Data Set",
         "Owner": "UC Irvine",
         "URL": "https://archive.ics.uci.edu/ml/machine-learning-databases/00294/CCPP.zip",
@@ -26,7 +27,16 @@ MOCK_DATASETS = [
         "Downloads": 191037,
         "Likes": 0,
         "File Size": "3.7 MB",
-        "Web Page (for reference, not metadata)": "https://archive.ics.uci.edu/ml/datasets/Combined+Cycle+Power+Plant#",
+        "img_link": "https://www.miga.org/sites/default/files/2018-06/power-plant-bright-blue-sky.jpg",
+        "Datasets": [
+            {
+                "Name": "Dataset 1",
+                "URL": "https://archive.ics.uci.edu/ml/machine-learning-databases/00294/CCPP.zip",
+                "Likes": 0,
+                "Downloads": 191037,
+                "File Size": "3.7 MB"
+            }
+        ]
     }
 ]
 

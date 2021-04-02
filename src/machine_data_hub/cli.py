@@ -19,6 +19,14 @@ def get_datasets(url):
 
 
 def dataset_names(datasets):
+    #names = []
+    #for row in datasets:
+    #    dataset_links = row["Datasets"]
+    #    if len(dataset_links) > 1: # if there's more than 1 download link
+    #        for i in range(len(dataset_links)):
+    #            names.append(row["Name"] + " " + str(i + 1))
+    #    else:
+    #        names.append(row["Name"])
     names = [row["Name"] for row in datasets]
     return names
 
@@ -44,12 +52,34 @@ def download(name: str):
     """Download a dataset by passing in the name. """
     datasets = get_datasets(API_URL)
     if name in dataset_names(datasets):
-        typer.echo(f"Downloading {name} right now!")
-        url = [row["DownloadLink"] for row in datasets if row["Name"] == name][0]
-        r = requests.get(url, allow_redirects=True)
-        # save content with name
-        with open(f"{name}", "wb") as fid:
-            fid.write(r.content)
+        for row in datasets:
+            if row["Name"] == name:
+                dataset_links = row["Datasets"]
+        num_datasets = len(dataset_links)
+        if num_datasets > 1:
+            response = input("This dataset has " + str(num_datasets) + " different files. Do you want to download them all? (y/n) ")
+            if response == "y":
+                for i, each in enumerate(dataset_links):
+                    typer.echo(f"Downloading {name} file {i} right now!")
+                    url = each["URL"]
+                    r = requests.get(url, allow_redirects=True)
+                    # save content with name
+                    with open(f"{name}", "wb") as fid:
+                        fid.write(r.content)
+            elif response == "n":
+                data_to_download = input("Enter a list of integers from 0-" + str(num_datasets - 1) + " to download those files. ")
+                data_to_download = data_to_download.strip("[]").split(",")
+                typer.echo("Downloading files now!")
+                for each in data_to_download:
+                    #typer.echo(each)
+                    url = dataset_links[int(each)]["URL"]
+                    typer.echo(dataset_links[int(each)]["URL"])
+                    r = requests.get(url, allow_redirects=True)
+                    # save content with name
+                    with open(f"{name} {each}", "wb") as fid:
+                        fid.write(r.content)
+            else:
+                typer.echo("Please type y for yes or n for no.")
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the name.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
