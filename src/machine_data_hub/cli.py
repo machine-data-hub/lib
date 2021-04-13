@@ -71,15 +71,18 @@ def download(name: str):
                 data_to_download = data_to_download.strip("[]").split(",")
                 typer.echo("Downloading files now!")
                 for each in data_to_download:
-                    #typer.echo(each)
                     url = dataset_links[int(each)]["URL"]
-                    typer.echo(dataset_links[int(each)]["URL"])
                     r = requests.get(url, allow_redirects=True)
-                    # save content with name
                     with open(f"{name} {each}", "wb") as fid:
                         fid.write(r.content)
             else:
                 typer.echo("Please type y for yes or n for no.")
+                url = dataset_links[0]["URL"]
+                r = requests.get(url, allow_redirects=True)
+                with open(f"{name}", "wb") as fid:
+                    fid.write(r.content)
+        else:
+            typer.echo("Downloading files now!")
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the name.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
