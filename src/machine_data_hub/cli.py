@@ -19,16 +19,12 @@ def get_datasets(url):
 
 
 def dataset_names(datasets):
-    #names = []
-    #for row in datasets:
-    #    dataset_links = row["Datasets"]
-    #    if len(dataset_links) > 1: # if there's more than 1 download link
-    #        for i in range(len(dataset_links)):
-    #            names.append(row["Name"] + " " + str(i + 1))
-    #    else:
-    #        names.append(row["Name"])
-    names = [row["Name"] for row in datasets]
+    names = [str(row["id"]) + " " + row["Name"] + " (" + str(len(row["Datasets"])) + " files)" for row in datasets]
     return names
+
+def dataset_ids(datasets):
+    ids = [int(row['id']) for row in datasets]
+    return ids
 
 
 @app.command("suggest")
@@ -48,43 +44,33 @@ def suggest(link: str = typer.Option(..., prompt="Please enter the link to the d
 
 
 @app.command("download")
-def download(name: str):
+def download(id: int, file: int = typer.Argument(None)):
     """Download a dataset by passing in the name. """
     datasets = get_datasets(API_URL)
-    if name in dataset_names(datasets):
+    if id in dataset_ids(datasets):
         for row in datasets:
-            if row["Name"] == name:
-                dataset_links = row["Datasets"]
-        num_datasets = len(dataset_links)
-        if num_datasets > 1:
-            response = input("This dataset has " + str(num_datasets) + " different files. Do you want to download them all? (y/n) ")
-            if response == "y":
-                for i, each in enumerate(dataset_links):
-                    typer.echo(f"Downloading {name} file {i} right now!")
-                    url = each["URL"]
+            url = ""
+            if int(row["id"]) == id:
+                name = row["Name"] # saving name of dataset
+
+                # if optional argument is passed
+                if file:
+                    # making sure that the file passed exists for the specified dataset
+                    if file > len(row["Datasets"]):
+                        typer.echo("The dataset you selected does not have that file.")
+                    else:
+                        url = row["Datasets"][file]["URL"]
+
+                # if no file is specified, download first file
+                else:
+                    url = row["Datasets"][0]["URL"]
+                if url != "":
+                    typer.echo("Downloading files now!")
                     r = requests.get(url, allow_redirects=True)
-                    # save content with name
                     with open(f"{name}", "wb") as fid:
                         fid.write(r.content)
-            elif response == "n":
-                data_to_download = input("Enter a list of integers from 0-" + str(num_datasets - 1) + " to download those files. ")
-                data_to_download = data_to_download.strip("[]").split(",")
-                typer.echo("Downloading files now!")
-                for each in data_to_download:
-                    url = dataset_links[int(each)]["URL"]
-                    r = requests.get(url, allow_redirects=True)
-                    with open(f"{name} {each}", "wb") as fid:
-                        fid.write(r.content)
-            else:
-                typer.echo("Please type y for yes or n for no.")
-                url = dataset_links[0]["URL"]
-                r = requests.get(url, allow_redirects=True)
-                with open(f"{name}", "wb") as fid:
-                    fid.write(r.content)
-        else:
-            typer.echo("Downloading files now!")
     else:
-        typer.echo("That dataset doesn't exist or you've made a typo in the name.")
+        typer.echo("That dataset doesn't exist or you've made a typo in the id.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
 
 
