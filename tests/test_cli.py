@@ -81,7 +81,7 @@ def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
 
 def test_fail_download(runner, mock_requests_get):
     # passing in incorrect name
-    result = runner.invoke(app, ["download", "Combined Cycle Power Plant Data"])
+    result = runner.invoke(app, ["download", "Combined Cycle Power"])
     assert result.exit_code == 0
 
 
@@ -92,10 +92,7 @@ def test_metadata(runner, mock_requests_get):
 
 
 def test_suggest(runner):
-    result = runner.invoke(app, ["suggest",
-                                 "--link", "www.google.com",
-                                 "--name", "Test",
-                                 "--summary", "Testing summary"])
+    result = runner.invoke(app, ["suggest", "www.google.com", "Test", "Testing summary"])
     assert result.exit_code == 0
 
 
