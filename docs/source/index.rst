@@ -24,6 +24,7 @@ Guide
    :caption: Contents:
 
    tutorial
+   release
    license
 
 Indices and tables

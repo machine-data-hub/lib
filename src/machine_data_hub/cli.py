@@ -1,11 +1,12 @@
 import typer
+import json
 import requests
-import csv
-import pathlib
+import datetime
 
 app = typer.Typer()
 API_URL = "https://machinedatahub.ai/datasets.json"
-SUGGESTION_FILE = pathlib.Path(".") / "src" / "data" / "suggestions.csv" 
+SILLYSTRING = 'ZJBsQTFUy40aKy0tqieJghp_8ZGng8jE27uqBeRD'
+TOKEN = SILLYSTRING[20:] + SILLYSTRING[0:20]
 
 
 def get_datasets(url):
@@ -40,14 +41,20 @@ def dataset_ids(datasets):
 
 
 @app.command("suggest")
-def suggest(link: str, name: str = typer.Argument(None), summary: str = typer.Argument(None)):
+def suggest(name: str, link: str, summary: str):
     """Suggest a dataset to be added to the Machine Data Hub by giving a link, name, and summary. """
-    typer.echo(f"{SUGGESTION_FILE}")
-    with open(SUGGESTION_FILE, mode="a") as suggestions_file:
-        employee_writer = csv.writer(
-            suggestions_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-        )
-        employee_writer.writerow([name, summary, link])
+    org = "PHM-Data-Hub"
+    team_slug = "uw-capstone-team"
+    discussion_number = 1
+    date_time = str(datetime.date().today()) + " " + str(datetime.now())
+    body = " ### " + name + "\n" + date_time + "\n\n**Summary:** " + summary + "\n**Link:** " + link
+    query_url = f"https://api.github.com/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments"
+    data = {
+        "body": body
+    }
+    headers = {'Authorization': f'token {TOKEN}'}
+    r = requests.post(query_url, headers=headers, data=json.dumps(data))
+    typer.echo(r.json())
     typer.echo(
         f"Thank you! You have suggested a dataset, {name}, from the following link: {link}"
     )
@@ -59,7 +66,6 @@ def download(id: int, file: int = typer.Argument(None)):
     datasets = get_datasets(API_URL)
     if id in dataset_ids(datasets):
         for row in datasets:
-            url = ""
             if int(row["id"]) == id:
                 name = row["Name"] # saving name of dataset
 
@@ -70,6 +76,9 @@ def download(id: int, file: int = typer.Argument(None)):
                         typer.echo("The dataset you selected does not have that file.")
                     else:
                         url = row["Datasets"][file]["URL"]
+                        r = requests.get(url, allow_redirects=True)
+                        with open(f"{name}", "wb") as fid:
+                            fid.write(r.content)
 
                 # if no file is specified, download all files
                 else:
