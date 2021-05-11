@@ -1,11 +1,13 @@
 import typer
+import json
 import requests
-import csv
-import pathlib
+import datetime
+from tabulate import tabulate
 
 app = typer.Typer()
 API_URL = "https://machinedatahub.ai/datasets.json"
-SUGGESTION_FILE = pathlib.Path(".") / "src" / "data" / "suggestions.csv" 
+SILLYSTRING = 'ZJBsQTFUy40aKy0tqieJghp_8ZGng8jE27uqBeRD'
+TOKEN = SILLYSTRING[20:] + SILLYSTRING[0:20]
 
 
 def get_datasets(url):
@@ -19,52 +21,93 @@ def get_datasets(url):
 
 
 def dataset_names(datasets):
-    names = [row["Name"] for row in datasets]
+    names = [str(row["id"]) + " " + row["Name"] + " (" + str(len(row["Datasets"])) + " files, " + row["File Size"] + ")" for row in datasets]
     return names
+
+def dataset_ids(datasets):
+    ids = [int(row['id']) for row in datasets]
+    return ids
 
 
 @app.command("suggest")
-def suggest(link: str = typer.Option(..., prompt="Please enter the link to the dataset you want to suggest"),
-            name: str = typer.Option(..., prompt="Please enter a name for the dataset at the link you provided"),
-            summary: str = typer.Option(..., prompt="Please enter a short summary describing the dataset"),):
+def suggest(name: str, link: str, summary: str):
     """Suggest a dataset to be added to the Machine Data Hub by giving a link, name, and summary. """
-    typer.echo(f"{SUGGESTION_FILE}")
-    with open(SUGGESTION_FILE, mode="a") as suggestions_file:
-        employee_writer = csv.writer(
-            suggestions_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-        )
-        employee_writer.writerow([name, summary, link])
+    org = "PHM-Data-Hub"
+    team_slug = "uw-capstone-team"
+    discussion_number = 1
+    date_time = str(datetime.date.today()) + " " + str(datetime.datetime.now().time())
+    body = " ### " + name + "\n" + date_time + "\n\n**Summary:** " + summary + "\n**Link:** " + link + "\n\nSubmitted from command line interface"
+    query_url = f"https://api.github.com/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments"
+    data = {
+        "body": body
+    }
+    headers = {'Authorization': f'token {TOKEN}'}
+    r = requests.post(query_url, headers=headers, data=json.dumps(data))
     typer.echo(
         f"Thank you! You have suggested a dataset, {name}, from the following link: {link}"
     )
 
 
 @app.command("download")
-def download(name: str):
+def download(id: int, file: int = typer.Argument(None)):
     """Download a dataset by passing in the name. """
     datasets = get_datasets(API_URL)
-    if name in dataset_names(datasets):
-        typer.echo(f"Downloading {name} right now!")
-        url = [row["DownloadLink"] for row in datasets if row["Name"] == name][0]
-        r = requests.get(url, allow_redirects=True)
-        # save content with name
-        with open(f"{name}", "wb") as fid:
-            fid.write(r.content)
+
+    # if dataset id exists
+    if id in dataset_ids(datasets):
+        # loop through each dataset
+        for row in datasets:
+            # find the dataset with given id
+            if int(row["id"]) == id:
+                # if optional argument is passed
+                if not (file is None):
+                    # making sure that the file passed exists for the specified dataset
+                    file_index = file - 1 # converting user input into proper python indexing
+                    if file_index > len(row["Datasets"]) or file_index < 0:
+                        typer.echo("The dataset you selected does not have that file.")
+                    else:
+                        url = row["Datasets"][file_index]["URL"]
+                        name = row["Name"] + " " + "_File" + str(file)
+                        typer.echo("Downloading file now!")
+                        r = requests.get(url, allow_redirects=True)
+                        with open(f"{name}", "wb") as fid:
+                            fid.write(r.content)
+
+                # if no file is specified, download all files
+                else:
+                    urls = [data["URL"] for data in row["Datasets"]]
+                    typer.echo("Downloading files now!")
+                    for i, url in enumerate(urls):
+                        name = row["Name"] + " " + "_File" + str(i + 1)
+                        r = requests.get(url, allow_redirects=True)
+                        with open(f"{name}", "wb") as fid:
+                            fid.write(r.content)
+
+    # if dataset id doesnt exist
     else:
-        typer.echo("That dataset doesn't exist or you've made a typo in the name.")
+        typer.echo("That dataset doesn't exist or you've made a typo in the id.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
 
 
 @app.command("metadata")
-def metadata(name: str):
+def metadata(id: int):
     """View the metadata for a dataset by passing in the name. """
     datasets = get_datasets(API_URL)
-    if name in dataset_names(datasets):
+    if id in dataset_ids(datasets):
         for row in datasets:
-            if row["Name"] == name:
+            if int(row["id"]) == id:
+                table = []
                 for key in row:
-                    info = key + ": " + str(row[key])
-                    typer.echo(info)
+                    if key == "Datasets":
+                        set = row["Datasets"]
+                        info = [key, tabulate(set)]
+                        table.append(info)
+                    elif key == "img_link" or key == "One Line" or key == "URL" or key == "Rank":
+                        pass
+                    else:
+                        info = [key, row[key]]
+                        table.append(info)
+                typer.echo(tabulate(table))
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the name.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
@@ -79,7 +122,6 @@ def list():
         all += name
         all += "\n"
     typer.echo(all)
-
 
 def main():
     app()
