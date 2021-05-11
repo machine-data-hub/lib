@@ -21,25 +21,8 @@ def get_datasets(url):
 
 
 def dataset_names(datasets):
-    list_data = []
-    for row in datasets:
-        data_info = {}
-        data_info["id"] = str(row["id"])
-        data_info["name"] = row["Name"]
-        files_list = []
-        for num, file in enumerate(row["Datasets"]):
-            file_and_size = [file["Name"], file["File Size"]]
-            files_list.append(file_and_size)
-        #num = len(row["Datasets"])
-        #sizes = [file["File Size"] for file in row["Datasets"]]
-        #output = id + " " + name + " (" + num + " files, "
-        #x = ', '.join(sizes)
-        #output += x
-        #output += ")"
-        #list_data.append(output)
-        data_info["files"] = files_list
-        list_data.append(data_info)
-    return list_data
+    names = [str(row["id"]) + " " + row["Name"] + " (" + str(len(row["Datasets"])) + " files, " + row["File Size"] + ")" for row in datasets]
+    return names
 
 def dataset_ids(datasets):
     ids = [int(row['id']) for row in datasets]
@@ -112,9 +95,19 @@ def metadata(id: int):
     if id in dataset_ids(datasets):
         for row in datasets:
             if int(row["id"]) == id:
+                table = []
                 for key in row:
-                    info = key + ": " + str(row[key])
-                    typer.echo(info)
+                    if key == "Datasets":
+                        set = row["Datasets"]
+                        info = [key, tabulate(set)]
+                        table.append(info)
+                        #typer.echo(tabulate(info))
+                    elif key == "img_link" or key == "One Line" or key == "URL" or key == "Rank":
+                        pass
+                    else:
+                        info = [key, row[key]]
+                        table.append(info)
+                typer.echo(tabulate(table))
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the name.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
@@ -123,12 +116,12 @@ def metadata(id: int):
 @app.command("list")
 def list():
     """View list of all datasets available. """
+    all = ""
     datasets = get_datasets(API_URL)
-    for dataset in dataset_names(datasets):
-        all = dataset["id"] + " - " + dataset["name"]
-        typer.echo(all)
-        typer.echo(tabulate(dataset["files"]))
-        typer.echo("\n")
+    for name in dataset_names(datasets):
+        all += name
+        all += "\n"
+    typer.echo(all)
 
 def main():
     app()

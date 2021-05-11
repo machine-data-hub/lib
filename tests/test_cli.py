@@ -75,18 +75,18 @@ def runner():
 def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
     print(f"Try the get_datasets() mock: {machine_data_hub.cli.get_datasets('hello')}")
     print(f"Try the request.get mock: {requests.get('hello').json()}")
-    result = runner.invoke(app, ["download", 1, 1])
+    result = runner.invoke(app, ["download", "1", "1"])
     assert result.exit_code == 0
 
 
 def test_fail_download(runner, mock_requests_get, mock_requests_file_get):
     # passing in incorrect name
-    result = runner.invoke(app, ["download", 9999])
+    result = runner.invoke(app, ["download", "9999"])
     assert result.exit_code == 0
 
 
 def test_metadata(runner, mock_requests_get, mock_requests_file_get):
-    result = runner.invoke(app, ["metadata", 1])
+    result = runner.invoke(app, ["metadata", "1"])
     assert result.exit_code == 0
     # assert f"Downloading {name} right now!" in result.stdout
 
