@@ -59,15 +59,15 @@ def download(id: int, file: int = typer.Argument(None)):
         for row in datasets:
             # find the dataset with given id
             if int(row["id"]) == id:
-                # once found, saving name of dataset
-                name = row["Name"]
                 # if optional argument is passed
-                if file:
+                if not (file is None):
                     # making sure that the file passed exists for the specified dataset
-                    if file - 1 > len(row["Datasets"]) or file - 1 < 0:
+                    file_index = file - 1 # converting user input into proper python indexing
+                    if file_index > len(row["Datasets"]) or file_index < 0:
                         typer.echo("The dataset you selected does not have that file.")
                     else:
-                        url = row["Datasets"][file - 1]["URL"]
+                        url = row["Datasets"][file_index]["URL"]
+                        name = row["Name"] + " " + "_File" + str(file)
                         typer.echo("Downloading file now!")
                         r = requests.get(url, allow_redirects=True)
                         with open(f"{name}", "wb") as fid:
@@ -77,10 +77,11 @@ def download(id: int, file: int = typer.Argument(None)):
                 else:
                     urls = [data["URL"] for data in row["Datasets"]]
                     typer.echo("Downloading files now!")
-                    for url in urls:
-                       r = requests.get(url, allow_redirects=True)
-                       with open(f"{name}", "wb") as fid:
-                           fid.write(r.content)
+                    for i, url in enumerate(urls):
+                        name = row["Name"] + " " + "_File" + str(i + 1)
+                        r = requests.get(url, allow_redirects=True)
+                        with open(f"{name}", "wb") as fid:
+                            fid.write(r.content)
 
     # if dataset id doesnt exist
     else:
@@ -101,7 +102,6 @@ def metadata(id: int):
                         set = row["Datasets"]
                         info = [key, tabulate(set)]
                         table.append(info)
-                        #typer.echo(tabulate(info))
                     elif key == "img_link" or key == "One Line" or key == "URL" or key == "Rank":
                         pass
                     else:
