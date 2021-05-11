@@ -64,10 +64,10 @@ def download(id: int, file: int = typer.Argument(None)):
                 # if optional argument is passed
                 if file:
                     # making sure that the file passed exists for the specified dataset
-                    if file > len(row["Datasets"]):
+                    if file - 1 > len(row["Datasets"]) or file - 1 < 0:
                         typer.echo("The dataset you selected does not have that file.")
                     else:
-                        url = row["Datasets"][file]["URL"]
+                        url = row["Datasets"][file - 1]["URL"]
                         typer.echo("Downloading file now!")
                         r = requests.get(url, allow_redirects=True)
                         with open(f"{name}", "wb") as fid:
