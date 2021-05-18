@@ -69,7 +69,7 @@ def download(id: int, file: int = typer.Argument(None)):
                         typer.echo("The dataset you selected does not have that file.")
                     else:
                         url = row["Datasets"][file_index]["URL"]
-                        name = row["Name"] + " " + "_File" + str(file)
+                        name = row["Name"]  + "_File" + str(file)
                         typer.echo("Downloading file now!")
                         r = requests.get(url, allow_redirects=True)
                         total_size_in_bytes = int(r.headers.get('content-length', 0))
@@ -79,14 +79,13 @@ def download(id: int, file: int = typer.Argument(None)):
                             for data in r.iter_content(block_size):
                                 progress_bar.update(len(data))
                                 fid.write(data)
-                            #fid.write(r.content)
                         progress_bar.close()
                 # if no file is specified, download all files
                 else:
                     urls = [data["URL"] for data in row["Datasets"]]
                     typer.echo("Downloading files now!")
                     for i, url in enumerate(urls):
-                        name = row["Name"] + " " + "_File" + str(i + 1)
+                        name = row["Name"] + "_File" + str(i + 1)
                         r = requests.get(url, allow_redirects=True)
                         with open(f"{name}", "wb") as fid:
                             fid.write(r.content)
