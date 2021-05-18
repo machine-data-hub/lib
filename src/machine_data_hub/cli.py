@@ -3,6 +3,8 @@ import json
 import requests
 import datetime
 from tabulate import tabulate
+from tqdm import tqdm
+import textwrap
 
 app = typer.Typer()
 API_URL = "https://machinedatahub.ai/datasets.json"
@@ -67,18 +69,23 @@ def download(id: int, file: int = typer.Argument(None)):
                         typer.echo("The dataset you selected does not have that file.")
                     else:
                         url = row["Datasets"][file_index]["URL"]
-                        name = row["Name"] + " " + "_File" + str(file)
+                        name = row["Name"]  + "_File" + str(file)
                         typer.echo("Downloading file now!")
                         r = requests.get(url, allow_redirects=True)
+                        total_size_in_bytes = int(r.headers.get('content-length', 0))
+                        block_size = 1024  # 1 Kibibyte
+                        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
                         with open(f"{name}", "wb") as fid:
-                            fid.write(r.content)
-
+                            for data in r.iter_content(block_size):
+                                progress_bar.update(len(data))
+                                fid.write(data)
+                        progress_bar.close()
                 # if no file is specified, download all files
                 else:
                     urls = [data["URL"] for data in row["Datasets"]]
                     typer.echo("Downloading files now!")
                     for i, url in enumerate(urls):
-                        name = row["Name"] + " " + "_File" + str(i + 1)
+                        name = row["Name"] + "_File" + str(i + 1)
                         r = requests.get(url, allow_redirects=True)
                         with open(f"{name}", "wb") as fid:
                             fid.write(r.content)
@@ -87,7 +94,6 @@ def download(id: int, file: int = typer.Argument(None)):
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the id.")
         typer.echo("Use the 'see all datasets' command to view the available datasets.")
-
 
 @app.command("metadata")
 def metadata(id: int):
@@ -100,7 +106,19 @@ def metadata(id: int):
                 for key in row:
                     if key == "Datasets":
                         set = row["Datasets"]
-                        info = [key, tabulate(set)]
+                        for each in set:
+                            set_url = each['URL']
+                            if len(set_url) > 40:
+                                sep = '\n'
+                                each['URL'] = sep.join(textwrap.wrap(set_url, width=40))
+                        info = [key, tabulate(set, headers={'Name': 'Name', 'URL': 'URL',
+                                                            'Likes': 'Likes', 'Downloads': 'Downloads',
+                                                            'File Size': 'File Size'})]
+                        table.append(info)
+                    elif key == "Summary":
+                        sep = '\n'
+                        row[key] = sep.join(textwrap.wrap(row["Summary"], width=90))
+                        info = [key, row[key]]
                         table.append(info)
                     elif key == "img_link" or key == "One Line" or key == "URL" or key == "Rank":
                         pass
