@@ -71,7 +71,9 @@ def download(id: int, file: int = typer.Argument(None)):
                         url = row["Datasets"][file_index]["URL"]
                         name = row["Name"]  + "_File" + str(file)
                         typer.echo("Downloading file now!")
-                        r = requests.get(url, allow_redirects=True)
+                        # loading bar code from stack overflow
+                        # https://stackoverflow.com/questions/37573483/progress-bar-while-download-file-over-http-with-requests/37573701#37573701
+                        r = requests.get(url, allow_redirects=True, stream=True)
                         total_size_in_bytes = int(r.headers.get('content-length', 0))
                         block_size = 1024  # 1 Kibibyte
                         progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
