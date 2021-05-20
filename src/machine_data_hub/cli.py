@@ -88,10 +88,15 @@ def download(id: int, file: int = typer.Argument(None)):
                     typer.echo("Downloading files now!")
                     for i, url in enumerate(urls):
                         name = row["Name"] + "_File" + str(i + 1)
-                        r = requests.get(url, allow_redirects=True)
+                        r = requests.get(url, allow_redirects=True, stream=True)
+                        total_size_in_bytes = int(r.headers.get('content-length', 0))
+                        block_size = 1024  # 1 Kibibyte
+                        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
                         with open(f"{name}", "wb") as fid:
-                            fid.write(r.content)
-
+                            for data in r.iter_content(block_size):
+                                progress_bar.update(len(data))
+                                fid.write(data)
+                        progress_bar.close()
     # if dataset id doesnt exist
     else:
         typer.echo("That dataset doesn't exist or you've made a typo in the id.")
