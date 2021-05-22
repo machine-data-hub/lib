@@ -213,6 +213,14 @@ MarkupSafe = ">=0.23"
 i18n = ["Babel (>=0.8)"]
 
 [[package]]
+name = "lepl"
+version = "5.1.3"
+description = "A Parser Library for Python 2.6+/3+: Recursive Descent; Full Backtracking"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "markupsafe"
 version = "1.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -437,6 +445,17 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
+
+[[package]]
+name = "rfc6266"
+version = "0.0.4"
+description = "Parse and generate Content-Disposition headers"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+LEPL = "*"
 
 [[package]]
 name = "six"
@@ -682,7 +701,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "e9df3d27f75508f9c7ab56fdb860e9c6e44a0f4710cba9b1ee59392de7d3d418"
+content-hash = "3d1c3f380797c5f7aec944d031fb86bcb3d1b1a8a06087aad8da5afb455cf27a"
 
 [metadata.files]
 alabaster = [
@@ -814,6 +833,10 @@ iniconfig = [
 jinja2 = [
     {file = "Jinja2-2.11.3-py2.py3-none-any.whl", hash = "sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419"},
     {file = "Jinja2-2.11.3.tar.gz", hash = "sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6"},
+]
+lepl = [
+    {file = "LEPL-5.1.3.tar.gz", hash = "sha256:a8715c709308350ce4afed5d525682656886d38141387ec87d44421da8d41397"},
+    {file = "LEPL-5.1.3.zip", hash = "sha256:da6dfa01bbd449f8544857b13474ad52fcca30a5d30de96271c70f34c7a3f96e"},
 ]
 markupsafe = [
     {file = "MarkupSafe-1.1.1-cp27-cp27m-macosx_10_6_intel.whl", hash = "sha256:09027a7803a62ca78792ad89403b1b7a73a01c8cb65909cd876f7fcebd79b161"},
@@ -1038,6 +1061,9 @@ regex = [
 requests = [
     {file = "requests-2.25.1-py2.py3-none-any.whl", hash = "sha256:c210084e36a42ae6b9219e00e48287def368a26d03a048ddad7bfee44f75871e"},
     {file = "requests-2.25.1.tar.gz", hash = "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804"},
+]
+rfc6266 = [
+    {file = "rfc6266-0.0.4.tar.gz", hash = "sha256:923116bd77cf283b161a813139f5022e894e91d040686208aa33eb43db1b7703"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},

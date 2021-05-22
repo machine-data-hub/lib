@@ -4,6 +4,8 @@ import requests
 import datetime
 from tabulate import tabulate
 from tqdm import tqdm
+import rfc6266
+import os
 import textwrap
 
 app = typer.Typer()
@@ -61,23 +63,38 @@ def download(id: int, file: int = typer.Argument(None)):
         for row in datasets:
             # find the dataset with given id
             if int(row["id"]) == id:
-                # if optional argument is passed
+
+                # make directory in the format of id_DatasetName
+                id = row["id"]
+                name = row["Name"]
+                dest_folder = f"{id}_{name.replace(' ','')}"
+                if not os.path.exists(dest_folder):
+                    os.makedirs(dest_folder)
+
+                # if optional argument is passed to download specified file
                 if not (file is None):
                     # making sure that the file passed exists for the specified dataset
                     file_index = file - 1 # converting user input into proper python indexing
                     if file_index > len(row["Datasets"]) or file_index < 0:
                         typer.echo("The dataset you selected does not have that file.")
                     else:
+                        # getting download URL
                         url = row["Datasets"][file_index]["URL"]
-                        name = row["Name"]  + "_File" + str(file)
+                        r = requests.get(url, allow_redirects=True, stream=True)
+
+                        # getting individual file's name
+                        filename = rfc6266.parse_requests_response(r).filename_unsafe
+                        file_path = os.path.join(dest_folder, filename)
+
                         typer.echo("Downloading file now!")
                         # loading bar code from stack overflow
                         # https://stackoverflow.com/questions/37573483/progress-bar-while-download-file-over-http-with-requests/37573701#37573701
-                        r = requests.get(url, allow_redirects=True, stream=True)
                         total_size_in_bytes = int(r.headers.get('content-length', 0))
                         block_size = 1024  # 1 Kibibyte
                         progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
-                        with open(f"{name}", "wb") as fid:
+
+                        # saving file
+                        with open(file_path, "wb") as fid:
                             for data in r.iter_content(block_size):
                                 progress_bar.update(len(data))
                                 fid.write(data)
@@ -87,12 +104,13 @@ def download(id: int, file: int = typer.Argument(None)):
                     urls = [data["URL"] for data in row["Datasets"]]
                     typer.echo("Downloading files now!")
                     for i, url in enumerate(urls):
-                        name = row["Name"] + "_File" + str(i + 1)
                         r = requests.get(url, allow_redirects=True, stream=True)
+                        filename = rfc6266.parse_requests_response(r).filename_unsafe
+                        file_path = os.path.join(dest_folder, filename)
                         total_size_in_bytes = int(r.headers.get('content-length', 0))
                         block_size = 1024  # 1 Kibibyte
                         progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
-                        with open(f"{name}", "wb") as fid:
+                        with open(file_path, "wb") as fid:
                             for data in r.iter_content(block_size):
                                 progress_bar.update(len(data))
                                 fid.write(data)
