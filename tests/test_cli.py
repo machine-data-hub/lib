@@ -1,13 +1,12 @@
 from typer.testing import CliRunner
 import pytest
 from pytest_mock import MockFixture
-from unittest import mock
 import requests
+import responses
+import json
+import datetime
+from machine_data_hub.cli import API_URL, app
 
-
-# TUTORIAL FROM TYPER
-import machine_data_hub
-from machine_data_hub.cli import app
 
 MOCK_DATASETS = [
     {
@@ -34,35 +33,19 @@ MOCK_DATASETS = [
                 "URL": "https://archive.ics.uci.edu/ml/machine-learning-databases/00294/CCPP.zip",
                 "Likes": 0,
                 "Downloads": 191037,
-                "File Size": "3.7 MB"
+                "File Size": "3.7 MB",
             }
-        ]
+        ],
     }
 ]
 
-
-@pytest.fixture
-def mock_requests_get(mocker):
-    """Fixture for mocking requests.get."""
-    mock = mocker.patch("requests.get")
-    mock.return_value.__enter__.return_value.json.return_value = MOCK_DATASETS
-    return mock
+MOCK_BODY = json.dumps(MOCK_DATASETS).encode("utf-8")
 
 
 @pytest.fixture
-def mock_requests_file_get(mocker):
-    """Fixture for mocking requests.get."""
-    mock = mocker.patch("requests.get")
-    mock.return_value.content = b"Example File Content"
-    return mock
-
-
-@pytest.fixture
-def mock_get_datasets(mocker):
-    """Fixture for mocking get_datasets."""
-    mock = mocker.patch("machine_data_hub.cli.get_datasets")
-    mock.return_value = MOCK_DATASETS
-    return mock
+def mocked_responses():
+    with responses.RequestsMock() as rsps:
+        yield rsps
 
 
 @pytest.fixture
@@ -72,31 +55,104 @@ def runner():
 
 # The first parameter to runner.invoke() is a Typer app.
 # The second parameter is a list of str, with all the text you would pass in the command line, right as you would pass it:
-def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
-    #print(f"Try the get_datasets() mock: {machine_data_hub.cli.get_datasets('hello')}")
-    #print(f"Try the request.get mock: {requests.get('hello').json()}")
-    result = runner.invoke(app, ["download", "1", "1"])
-    assert result.exit_code == 0
+def test_success_download(runner, mocked_responses):
+    with open("tests/data/content.zip", "rb") as data:
+        mocked_responses.add(
+            responses.GET,
+            API_URL,
+            body=MOCK_BODY,
+            status=200,
+            content_type="application/json",
+        )
+
+        mocked_responses.add(
+            responses.GET,
+            "https://archive.ics.uci.edu/ml/machine-learning-databases/00294/CCPP.zip",
+            body=data.read(),
+            status=200,
+            content_type="application/zip",
+            stream=True,
+        )
+
+        result = runner.invoke(app, ["download", "1", "1"])
+        assert result.exit_code == 0
 
 
-def test_fail_download(runner, mock_requests_get, mock_requests_file_get):
-    # passing in incorrect name
+def test_fail_download(runner, mocked_responses):
+    # passing in incorrect id
+    mocked_responses.add(
+        responses.GET,
+        API_URL,
+        body=MOCK_BODY,
+        status=200,
+        content_type="application/json",
+    )
+
     result = runner.invoke(app, ["download", "9999"])
     assert result.exit_code == 0
 
 
-def test_metadata(runner, mock_requests_get, mock_requests_file_get):
+def test_metadata(runner, mocked_responses):
+    mocked_responses.add(
+        responses.GET,
+        API_URL,
+        body=MOCK_BODY,
+        status=200,
+        content_type="application/json",
+    )
+    res = requests.get("https://machinedatahub.ai/datasets.json")
+    print(res.json())
     result = runner.invoke(app, ["metadata", "1"])
     assert result.exit_code == 0
     # assert f"Downloading {name} right now!" in result.stdout
 
 
-def test_suggest(runner):
-    print("don't want to test every time")
-#    result = runner.invoke(app, ["suggest", "Test", "www.google.com", "Testing summary"])
-#    assert result.exit_code == 0
+def test_suggest(runner, mocked_responses):
+    from machine_data_hub.cli import TOKEN
+
+    name = "PyTest"
+    summary = "PyTesting Summary"
+    link = "https://pytest.com"
+
+    # Create mock response
+    org = "PHM-Data-Hub"
+    team_slug = "uw-capstone-team"
+    discussion_number = 1
+    date_time = str(datetime.date.today()) + " " + str(datetime.datetime.now().time())
+    body = (
+        " ### "
+        + name
+        + "\n"
+        + date_time
+        + "\n\n**Summary:** "
+        + summary
+        + "\n**Link:** "
+        + link
+        + "\n\nSubmitted from command line interface"
+    )
+    query_url = f"https://api.github.com/orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments"
+    data = {"body": body}
+    headers = {"Authorization": f"token {TOKEN}"}
+
+    mocked_responses.add(
+        responses.POST,
+        query_url,
+        body=json.dumps(data).encode("utf-8"),
+        status=200,
+        content_type="application/json",
+    )
+
+    result = runner.invoke(app, ["suggest", name, link, summary])
+    assert result.exit_code == 0
 
 
-def test_list(runner, mock_requests_get, mock_requests_file_get):
+def test_list(runner, mocked_responses):
+    mocked_responses.add(
+        responses.GET,
+        API_URL,
+        body=MOCK_BODY,
+        status=200,
+        content_type="application/json",
+    )
     result = runner.invoke(app, ["list"])
     assert result.exit_code == 0
