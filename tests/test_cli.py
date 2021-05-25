@@ -73,8 +73,8 @@ def runner():
 # The first parameter to runner.invoke() is a Typer app.
 # The second parameter is a list of str, with all the text you would pass in the command line, right as you would pass it:
 def test_success_download(runner, mock_get_datasets, mock_requests_file_get):
-    print(f"Try the get_datasets() mock: {machine_data_hub.cli.get_datasets('hello')}")
-    print(f"Try the request.get mock: {requests.get('hello').json()}")
+    #print(f"Try the get_datasets() mock: {machine_data_hub.cli.get_datasets('hello')}")
+    #print(f"Try the request.get mock: {requests.get('hello').json()}")
     result = runner.invoke(app, ["download", "1", "1"])
     assert result.exit_code == 0
 
