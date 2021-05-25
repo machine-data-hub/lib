@@ -1,17 +1,12 @@
-from unittest.loader import TestLoader
 from typer.testing import CliRunner
 import pytest
 from pytest_mock import MockFixture
-from unittest import mock
 import requests
 import responses
 import json
 import datetime
-from machine_data_hub.cli import API_URL
+from machine_data_hub.cli import API_URL, app
 
-# TUTORIAL FROM TYPER
-import machine_data_hub
-from machine_data_hub.cli import app
 
 MOCK_DATASETS = [
     {
