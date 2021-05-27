@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "machine-data-hub"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python-based Command Line Tool to use the Machine Data Hub"
 homepage = "https://machinedatahub.ai/"
 repository = "https://github.com/machine-data-hub"
