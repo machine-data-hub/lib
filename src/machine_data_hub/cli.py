@@ -32,7 +32,7 @@ def dataset_names(datasets):
         + " ("
         + str(len(row["Datasets"]))
         + " files, "
-        + row["File Size"]
+        + row["FileSize"]
         + ")"
         for row in datasets
     ]
@@ -176,14 +176,9 @@ def metadata(id: int):
                             ),
                         ]
                         table.append(info)
-                    elif key == "Summary":
-                        sep = "\n"
-                        row[key] = sep.join(textwrap.wrap(row["Summary"], width=90))
-                        info = [key, row[key]]
-                        table.append(info)
                     elif (
                         key == "img_link"
-                        or key == "One Line"
+                        or key == "Summary"
                         or key == "URL"
                         or key == "Rank"
                     ):

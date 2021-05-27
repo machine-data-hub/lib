@@ -2,6 +2,10 @@
 name = "machine-data-hub"
 version = "0.1.0"
 description = "Python-based Command Line Tool to use the Machine Data Hub"
+homepage = "https://machinedatahub.ai/"
+repository = "https://github.com/machine-data-hub"
+documentation = "https://machine-data-hub.readthedocs.io/en/latest/?badge=latest"
+readme = "README.md"
 authors = ["ceciliabarnes <cbarnes7@uw.edu>"]
 license = "MIT License"
 
