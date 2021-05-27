@@ -47,7 +47,7 @@ def dataset_ids(datasets):
 @app.command("suggest")
 def suggest(name: str, link: str, summary: str):
     """Suggest a dataset to be added to the Machine Data Hub by giving a link, name, and summary. """
-    org = "PHM-Data-Hub"
+    org = "Machine-Data-Hub"
     team_slug = "uw-capstone-team"
     discussion_number = 1
     date_time = str(datetime.date.today()) + " " + str(datetime.datetime.now().time())
